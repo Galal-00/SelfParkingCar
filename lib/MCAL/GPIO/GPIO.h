@@ -38,7 +38,14 @@ private:
     uint8_t _pin;
 
 public:
+    GPIO();
+
     GPIO(GPIO_TypeDef *port, uint8_t pin);
+
+    void setPinPort(GPIO_TypeDef *port, uint8_t pin);
+
+    void getPinPort(GPIO_TypeDef *&portRef, uint8_t &pinRef);
+    
     void init(GPIOMode mode, GPIOPull pull = GPIOPull::None,
               GPIOOutputType outputType = GPIOOutputType::PushPull,
               GPIOSpeed speed = GPIOSpeed::Medium, uint8_t altFunc = 0);

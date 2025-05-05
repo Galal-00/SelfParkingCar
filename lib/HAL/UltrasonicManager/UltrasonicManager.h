@@ -10,15 +10,34 @@ class UltrasonicManager
 {
 private:
     UltrasonicSensor sensors[SensorCount];
-    GPTimer& timer;
 
-    uint32_t delayMs;
-    uint8_t sensorIndex;
+    uint32_t settleDelayMs;
+
+    uint8_t sensorIndex = 0;
 
 public:
-    UltrasonicManager(GPTimer &timer, uint32_t settleDelayMs = 60);
+    UltrasonicManager() : settleDelayMs(60) {}
 
-    void setSensor(uint8_t index, const UltrasonicSensor &sensor);
+    UltrasonicManager(uint32_t settleDelayMs) : settleDelayMs(settleDelayMs) {}
 
-    void measureAll(float (&distances)[SensorCount]);
+    uint8_t setSensor(const UltrasonicSensor &sensor)
+    {
+        if (sensorIndex < SensorCount)
+        {
+            sensors[sensorIndex] = sensor;
+            return sensorIndex++;
+        }
+
+        return 0xFF;
+    }
+
+    void measureAll(float (&distances)[SensorCount])
+    {
+        for (uint8_t i = 0; i < SensorCount; ++i)
+        {
+            distances[i] = sensors[i].measureDistanceCm();
+
+            GPTimer::delayMs(sensors[i].getTimer(), settleDelayMs);
+        }
+    }
 };

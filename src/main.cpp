@@ -9,6 +9,7 @@
 #include "USART/USART.h"
 
 #include "UltrasonicSensor/UltrasonicSensor.h"
+#include "UltrasonicManager/UltrasonicManager.h"
 #include "IRSensor/IRSensor.h"
 #include "Bluetooth/Bluetooth.h"
 #include "SystemTimer/SystemTimer.h"
@@ -82,35 +83,58 @@ int main()
     //     serial.println("Received start!");
     // }
 
-    /* Create US */
-    // UltrasonicSensor US1(GPIO(GPIOA, 12), GPIO(GPIOA, 11));
-
     /* Create IR */
-    IRSensor IR1(GPIOA, 4);
+    // IRSensor IR1(GPIOA, 4);
 
     internal_led.reset();
 
-    char buff[16];
+    /* Create Ultrasonic Sensors */
+    UltrasonicSensor US[] = {UltrasonicSensor(GPIO(GPIOA, 12), GPIO(GPIOA, 11)),
+                             UltrasonicSensor(GPIO(GPIOA, 10), GPIO(GPIOA, 9))};
+
+    // UltrasonicSensor US1(GPIO(GPIOA, 12), GPIO(GPIOA, 11));
+    // UltrasonicSensor US2(GPIO(GPIOA, 10), GPIO(GPIOA, 9));
+    // UltrasonicSensor US3(GPIO(GPIOA, 8), GPIO(GPIOB, 15));
+    const uint8_t count_US = 2;
+    UltrasonicManager<count_US> USM;
+
+    for (auto &&us : US)
+    {
+        USM.setSensor(us);
+    }
+
+    char buff[32];
+    float distances[count_US];
+    int j = 0;
     while (true)
     {
-        if (IR1.objectDetected())
-        {
-            serial.println("Detected");
-        }
-        else
-        {
-            serial.println("No object");
-        }
-
-        GPTimer::delayMs(TIM4, 500);
-
-        // float dist = US1.measureDistanceCm();
+        // float dist = US[0].measureDistanceCm();
         // snprintf(buff, sizeof(buff), "%.3f", dist);
 
-        // serial.print("Distance: ");
-        // serial.println(buff);
+        USM.measureAll(distances);
 
-        // // Settle delay for US is at minimum is 60 ms
-        // GPTimer::delayMs(TIM4, 1000);
+        for (int i = 0; i < count_US; i++)
+        {
+            snprintf(buff, sizeof(buff), "Distance %d: %.3f", i, distances[i]);
+            serial.println(buff);
+        }
+
+        // Settle delay for US is at minimum is 60 ms
+
+        if (++j >= 1100)
+        {
+            break;
+        }
+        GPTimer::delayMs(TIM4, 100);
+        // if (IR1.objectDetected())
+        // {
+        //     serial.println("Detected");
+        // }
+        // else
+        // {
+        //     serial.println("No object");
+        // }
+
+        // GPTimer::delayMs(TIM4, 500);
     }
 }

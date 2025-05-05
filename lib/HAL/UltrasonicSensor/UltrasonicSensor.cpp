@@ -3,11 +3,45 @@
 #include "GPIO/GPIO.h"
 #include "GPTimer/GPTimer.h"
 
+UltrasonicSensor::UltrasonicSensor() {}
+
 UltrasonicSensor::UltrasonicSensor(GPIO trig, GPIO echo, TIM_TypeDef *TIMx)
     : trig(trig), echo(echo), TIMx(TIMx)
 {
-    trig.init(GPIOMode::Output);
-    echo.init(GPIOMode::Input, GPIOPull::None); // MUST be left floating
+    setConfig(trig, echo, TIMx);
+}
+
+void UltrasonicSensor::setConfig(GPIO trig, GPIO echo, TIM_TypeDef *TIMx)
+{
+    uint8_t trig_af = 0, echo_af = 0;
+    GPIO_TypeDef *trig_port = GPIOA, *echo_port = GPIOA;
+    uint8_t trig_pin = 0, echo_pin = 0;
+
+    trig.getPinPort(trig_port, trig_pin);
+    echo.getPinPort(echo_port, echo_pin);
+
+    // Check if AFIO needs update (Handles only PB4 for now)
+    if (trig_port == GPIOB && trig_pin == 4)
+    {
+        trig_af = 3;
+    }
+    else if (echo_port == GPIOB && echo_pin == 4)
+    {
+        echo_af = 3;
+    }
+
+    trig.init(GPIOMode::Output, GPIOPull::None, GPIOOutputType::PushPull, GPIOSpeed::Medium, trig_af);
+    echo.init(GPIOMode::Input, GPIOPull::None, GPIOOutputType::PushPull, GPIOSpeed::Medium, echo_af); // MUST be left floating
+
+    // Update (if needed) the stored parameters
+    this->trig = trig;
+    this->echo = echo;
+    this->TIMx = TIMx;
+}
+
+TIM_TypeDef *UltrasonicSensor::getTimer()
+{
+    return TIMx;
 }
 
 void UltrasonicSensor::sendTriggerPulse()

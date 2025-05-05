@@ -1,7 +1,21 @@
 #include "GPIO.h"
 #include "RCC/RCCInterface.h"
 
+GPIO::GPIO() {}
+
 GPIO::GPIO(GPIO_TypeDef *port, uint8_t pin) : _port(port), _pin(pin) {}
+
+void GPIO::setPinPort(GPIO_TypeDef *port, uint8_t pin)
+{
+    _port = port;
+    _pin = pin;
+}
+
+void GPIO::getPinPort(GPIO_TypeDef *&portRef, uint8_t &pinRef)
+{
+    portRef = _port;
+    pinRef = _pin;
+}
 
 void GPIO::init(GPIOMode mode, GPIOPull pull, GPIOOutputType outputType,
                 GPIOSpeed speed, uint8_t altFunc)
