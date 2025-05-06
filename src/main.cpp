@@ -10,131 +10,112 @@
 
 #include "UltrasonicSensor/UltrasonicSensor.h"
 #include "UltrasonicManager/UltrasonicManager.h"
+#include "MotorManager/MotorManager.h"
+
 #include "IRSensor/IRSensor.h"
 #include "Bluetooth/Bluetooth.h"
 #include "SystemTimer/SystemTimer.h"
 #include "MySerial/MySerial.h"
 #include "Motor/Motor.h"
 
-GPIO led_switch(GPIOA, 7);
+#include "Parking.h"
+
+GPIO led_switch(GPIOB, 6);
 
 // Active LOW internal LED
 GPIO internal_led(GPIOC, 13);
 
-MotorConfig motor1Config = {
-    GPIOB, // PWM GPIO port for motor 1 forward
-    0,     // Direction GPIO pin for forward
-    GPIOB, // PWM GPIO port for motor 1 reverse
-    1,     // Direction GPIO pin for reverse
+MotorConfig motorRightConfig = {
+    GPIOA, // PWM GPIO port for left motor forward
+    4,     // Direction GPIO pin for forward
+    GPIOA, // PWM GPIO port for left motor reverse
+    5,     // Direction GPIO pin for reverse
 
     TIM2, // Timer for PWM generation
-    1     // PWM channel (channel 1 for TIM2)
+    1     // PWM channel (channel 1 for TIM2: A0)
+};
+
+MotorConfig motorLeftConfig = {
+    GPIOB, // PWM GPIO port for right motor forward
+    13,    // Direction GPIO pin for forward
+    GPIOB, // PWM GPIO port for right motor reverse
+    12,    // Direction GPIO pin for reverse
+
+    TIM2, // Timer for PWM generation
+    2     // PWM channel (channel 2 for TIM2: A1)
 };
 
 int main()
 {
-    led_switch.init(GPIOMode::Input, GPIOPull::PullUp);
+    led_switch.init(GPIOMode::Output, GPIOPull::None);
     internal_led.init(GPIOMode::Output, GPIOPull::None);
-
-    internal_led.reset();
+    led_switch.set();
+    internal_led.set();
 
     // Initialize clock
     if (!RCCInterface::initSystemClock()) // By default 84MHz PLL (HSE based) clock
         internal_led.set();               // Clock Init failed indicator
 
-    // Create motor
-    // Motor motor1(motor1Config);
-
     // Serial on USART 2
     MySerial &serial = MySerial::getInstance();
 
-    // Bluetooth on USART 1
-    // Bluetooth BT(USART::BaudRate::BR_38400);
-    // BT.changeBaudRate(USART::BaudRate::BR_9600);
-
-    // Delay until platformio serial monitor opens
-    GPTimer::delayMs(TIM4, 6000);
-
     serial.println("Begin");
 
-    internal_led.set(); // Delay ended indicator
+    // Create left motors
+    Motor motorsLeft(motorLeftConfig);
 
-    // char response[255] = {0};
-    // serial.println("Attempt");
-    // BT.sendCMD(Bluetooth::COMMAND::AT, response);
-    // serial.print(response);
-    // serial.println("pass\n");
+    // Create right motors
+    Motor motorsRight(motorRightConfig);
 
-    // serial.println("Attempt 2");
-    // BT.sendCMD(Bluetooth::COMMAND::AT_NAME_newname, "galal_HC-05", response);
-    // serial.print(response);
-    // serial.println("pass 2");
+    // Motor manager
+    uint8_t motor_countL = 1;
+    uint8_t motor_countR = 2;
+    MotorManager motorManager(motorsRight, motor_countL, motorsLeft, motor_countR);
 
-    // serial.println("Attempt 3");
-    // BT.sendCMD(Bluetooth::COMMAND::AT_NAME, response);
-    // serial.print(response);
-    // serial.println("pass 3 \n\n\n");
+    // Ultrasonic sensors
+    UltrasonicSensor ultrasonicFront(GPIO(GPIOB, 8), GPIO(GPIOB, 9)); // Trigger on PB8, Echo on PB9
+    UltrasonicSensor ultrasonicRight(GPIO(GPIOB, 6), GPIO(GPIOB, 7)); // Trigger on PB6, Echo on PB7
+    UltrasonicSensor ultrasonicLeft(GPIO(GPIOB, 4), GPIO(GPIOB, 5));  // Trigger on PB4, Echo on PB5
+    // UltrasonicSensor ultrasonicBack(GPIO(GPIOB, 8), GPIO(GPIOB, 9));              // Trigger on PA6, Echo on PA7
 
-    // bool start = false;
-    // serial.println("Attempt receive start");
-    // if (BT.waitStartSignal())
-    // {
-    //     start = true;
-    //     serial.println("Received start!");
-    // }
+    // Ultrasonic manager (front, right, left)
+    UltrasonicManager ultrasonicManager(3, 60); // 3 sensors, 60ms settle time
+    ultrasonicManager.setSensor(ultrasonicFront);
+    ultrasonicManager.setSensor(ultrasonicRight);
+    ultrasonicManager.setSensor(ultrasonicLeft);
+    // ultrasonicManager.setSensor(ultrasonicBack);
 
-    /* Create IR */
-    // IRSensor IR1(GPIOA, 4);
+    // Parking
+    Parking parking(motorManager, ultrasonicManager);
 
     internal_led.reset();
 
-    /* Create Ultrasonic Sensors */
-    UltrasonicSensor US[] = {UltrasonicSensor(GPIO(GPIOA, 12), GPIO(GPIOA, 11)),
-                             UltrasonicSensor(GPIO(GPIOA, 10), GPIO(GPIOA, 9))};
+    uint8_t speed = 80; // Speed for motors
 
-    // UltrasonicSensor US1(GPIO(GPIOA, 12), GPIO(GPIOA, 11));
-    // UltrasonicSensor US2(GPIO(GPIOA, 10), GPIO(GPIOA, 9));
-    // UltrasonicSensor US3(GPIO(GPIOA, 8), GPIO(GPIOB, 15));
-    const uint8_t count_US = 2;
-    UltrasonicManager<count_US> USM;
-
-    for (auto &&us : US)
-    {
-        USM.setSensor(us);
-    }
-
-    char buff[32];
-    float distances[count_US];
-    int j = 0;
     while (true)
     {
-        // float dist = US[0].measureDistanceCm();
-        // snprintf(buff, sizeof(buff), "%.3f", dist);
 
-        USM.measureAll(distances);
+        // motorManager.driveForward(speed);
+        // GPTimer::delayMs(TIM4, 1000); // Move forward for 1 second
+        // motorManager.stopMotors();    // Stop motors
+        // GPTimer::delayMs(TIM4, 500);  // Wait for 500ms
 
-        for (int i = 0; i < count_US; i++)
-        {
-            snprintf(buff, sizeof(buff), "Distance %d: %.3f", i, distances[i]);
-            serial.println(buff);
-        }
+        // motorManager.driveReverse(speed);
+        // GPTimer::delayMs(TIM4, 1000); // Move backward for 1 second
+        // motorManager.stopMotors();    // Stop motors
+        // GPTimer::delayMs(TIM4, 500);  // Wait for 500ms
 
-        // Settle delay for US is at minimum is 60 ms
+        motorManager.rotateClockwise(speed);
+        GPTimer::delayMs(TIM4, 1000); // Rotate clockwise for 1 second
+        motorManager.stopMotors();    // Stop motors
+        GPTimer::delayMs(TIM4, 500);  // Wait for 500ms
 
-        if (++j >= 1100)
-        {
-            break;
-        }
-        GPTimer::delayMs(TIM4, 100);
-        // if (IR1.objectDetected())
-        // {
-        //     serial.println("Detected");
-        // }
-        // else
-        // {
-        //     serial.println("No object");
-        // }
+        motorManager.rotateCounterClockwise(speed);
+        GPTimer::delayMs(TIM4, 1000); // Rotate counterclockwise for 1 second
+        motorManager.stopMotors();    // Stop motors
+        GPTimer::delayMs(TIM4, 500);  // Wait for 500ms
 
-        // GPTimer::delayMs(TIM4, 500);
+        // Parking
+        // parking.updateParkingLogic();
     }
 }

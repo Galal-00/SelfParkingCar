@@ -5,24 +5,26 @@
 #include "GPTimer/GPTimer.h"
 #include "UltrasonicSensor/UltrasonicSensor.h"
 
-template <uint8_t SensorCount>
 class UltrasonicManager
 {
 private:
-    UltrasonicSensor sensors[SensorCount];
+    UltrasonicSensor *sensors;
 
     uint32_t settleDelayMs;
+
+    const uint8_t sensorCount;
 
     uint8_t sensorIndex = 0;
 
 public:
-    UltrasonicManager() : settleDelayMs(60) {}
-
-    UltrasonicManager(uint32_t settleDelayMs) : settleDelayMs(settleDelayMs) {}
+    UltrasonicManager(uint8_t sensorCount, uint32_t settleDelayMs = 60) : settleDelayMs(settleDelayMs), sensorCount(sensorCount)
+    {
+        sensors = new UltrasonicSensor[sensorCount];
+    }
 
     uint8_t setSensor(const UltrasonicSensor &sensor)
     {
-        if (sensorIndex < SensorCount)
+        if (sensorIndex < sensorCount)
         {
             sensors[sensorIndex] = sensor;
             return sensorIndex++;
@@ -31,9 +33,9 @@ public:
         return 0xFF;
     }
 
-    void measureAll(float (&distances)[SensorCount])
+    void measureAll(float *distances)
     {
-        for (uint8_t i = 0; i < SensorCount; ++i)
+        for (uint8_t i = 0; i < sensorCount; ++i)
         {
             distances[i] = sensors[i].measureDistanceCm();
 
