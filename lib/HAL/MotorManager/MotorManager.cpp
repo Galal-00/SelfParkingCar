@@ -8,7 +8,7 @@ MotorManager::MotorManager(Motor &motorsRight, uint8_t motor_countR, Motor &moto
 void MotorManager::stopMotors()
 {
     motorsLeft.stopMotor();
-
+    
     motorsRight.stopMotor();
 }
 

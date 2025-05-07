@@ -14,7 +14,7 @@ private:
 
     const uint8_t sensorCount;
 
-    uint8_t sensorIndex = 0;
+    uint8_t lastSensorIndex = 0;
 
 public:
     UltrasonicManager(uint8_t sensorCount, uint32_t settleDelayMs = 60) : settleDelayMs(settleDelayMs), sensorCount(sensorCount)
@@ -24,13 +24,24 @@ public:
 
     uint8_t setSensor(const UltrasonicSensor &sensor)
     {
-        if (sensorIndex < sensorCount)
+        if (lastSensorIndex < sensorCount)
         {
-            sensors[sensorIndex] = sensor;
-            return sensorIndex++;
+            sensors[lastSensorIndex] = sensor;
+            return lastSensorIndex++;
         }
 
         return 0xFF;
+    }
+
+    float measureOne(uint8_t idx)
+    {
+        if (idx < sensorCount)
+        {
+            float distance = sensors[idx].measureDistanceCm();
+            return distance;
+        }
+
+        return 0.0f;
     }
 
     void measureAll(float *distances)
