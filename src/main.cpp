@@ -20,8 +20,6 @@
 
 #include "Parking.h"
 
-GPIO led_switch(GPIOB, 6);
-
 // Active LOW internal LED
 GPIO internal_led(GPIOC, 13);
 
@@ -48,21 +46,14 @@ MotorConfig motorRightConfig = {
 
 int main()
 {
-    led_switch.init(GPIOMode::Output, GPIOPull::None);
     internal_led.init(GPIOMode::Output, GPIOPull::None);
-    led_switch.set();
     internal_led.set();
 
     // Initialize clock
     if (!RCCInterface::initSystemClock()) // By default 84MHz PLL (HSE based) clock
         internal_led.set();               // Clock Init failed indicator
 
-    // Serial on USART 2
-    MySerial &serial = MySerial::getInstance();
-
     GPTimer::delayMs(TIM4, 1000); // Wait for 1 second (power reaches ultrasonic / others)
-
-    serial.println("Begin");
 
     // Create left motors
     Motor motorsLeft(motorLeftConfig);
@@ -83,7 +74,7 @@ int main()
     UltrasonicSensor ultrasonicFrontLeft(GPIO(GPIOA, 10), GPIO(GPIOA, 11)); // Trigger on PA10, Echo on PA11
 
     // Ultrasonic manager (front, right, left)
-    UltrasonicManager ultrasonicManager(5, 30); // 4 sensors, 30ms settle time
+    UltrasonicManager ultrasonicManager(5, 30); // 5 sensors, 30ms settle time
     ultrasonicManager.setSensor(ultrasonicFront);
     ultrasonicManager.setSensor(ultrasonicRight);
     ultrasonicManager.setSensor(ultrasonicLeft);
@@ -95,79 +86,15 @@ int main()
 
     internal_led.reset();
 
-    uint8_t speed = 65;          // Speed for motors
-    uint8_t rotation_speed = 80; // Slow speed for parking or rotation
-
-    // motorManager.driveForward(speed);
-    // GPTimer::delayMs(TIM4, 1000); // Move forward for 1 second
-    // motorManager.stopMotors();    // Stop motors
-    // GPTimer::delayMs(TIM4, 500);  // Wait for 500ms
-
-    // motorManager.rotateClockwise(rotation_speed);
-    // GPTimer::delayMs(TIM4, 560); // Rotate clockwise for 1 second
-    // motorManager.stopMotors();   // Stop motors
     // GPTimer::delayMs(TIM4, 500); // Wait for 500ms
 
     Bluetooth BT(USART::BaudRate::BR_9600);
 
     BT.waitStartSignal();
 
-    // motorManager.rotateCounterClockwise(100);
-    // GPTimer::delayMs(TIM4, 440); // Rotate clockwise for 1 second
-    // motorManager.stopMotors();   // Stop motors
-    // GPTimer::delayMs(TIM4, 500); // Wait for 500ms
-
     while (true)
     {
-        // serial.println("Main loop");
-        // motorManager.rotateClockwise(speed); // Move forward
 
         parking.updateParkingLogic(); // Update parking logic
-
-        // serial.println("Measure US"); // Debug message
-        // float frontLeftDist = ultrasonicManager.measureOne(3);
-        // serial.println("Done"); // Debug message
-        // char buffer[80];        // Buffer for debug messages
-        // snprintf(buffer, sizeof(buffer), "Front Left Distance: %.2f cm", frontLeftDist);
-        // serial.println(buffer);       // Print distances for debugging
-        // GPTimer::delayMs(TIM4, 1000); // Wait for 1 second
-
-        // GPTimer::delayMs(TIM4, 1000); // Move forward for 1 second
-        // motorManager.stopMotors();    // Stop motors
-        // GPTimer::delayMs(TIM4, 500);  // Wait for 500ms
-        // float distances[3]; // Array to hold distances from sensors
-        // serial.println("Measure US"); // Debug message
-        // ultrasonicManager.measureAll(distances); // Measure distances
-        // serial.println("Done"); // Debug message
-
-        // float frontDist = distances[0], rightDist = distances[1], leftDist = distances[2];
-
-        // char buffer[80]; // Buffer for debug messages
-        // sniprintf(buffer, sizeof(buffer), "Distances: Front: %.2f, Right: %.2f, Left: %.2f", frontDist, rightDist, leftDist);
-
-        // MySerial::getInstance().println(buffer); // Print distances for debugging,
-
-        // GPTimer::delayMs(TIM4, 1000); // Wait for 1 second
-
-        // motorManager.driveForward(100);
-
-        // char buffer[80];
-        // float leftDist = ultrasonicManager.measureOne(2);
-        // float frontLeftDist = ultrasonicManager.measureOne(4);
-        // sniprintf(buffer, sizeof(buffer), "Distances: Left: %.2f, Front left: %.2f", leftDist, frontLeftDist);
-        // serial.println(buffer);
-
-        // motorManager.driveReverse(speed);
-        // GPTimer::delayMs(TIM4, 1000); // Move backward for 1 second
-        // motorManager.stopMotors();    // Stop motors
-        // GPTimer::delayMs(TIM4, 500);  // Wait for 500ms
-
-        // motorManager.rotateCounterClockwise(100);
-        // GPTimer::delayMs(TIM4, 1000); // Rotate counterclockwise for 1 second
-        // motorManager.stopMotors();    // Stop motors
-        // GPTimer::delayMs(TIM4, 500);  // Wait for 500ms
-
-        // Parking
-        // parking.updateParkingLogic();
     }
 }

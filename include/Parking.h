@@ -74,22 +74,14 @@ Parking::Parking(MotorManager &motorManager, UltrasonicManager &ultrasonicManage
 
 void Parking::checkForwardObstable()
 {
-    // MySerial &serial = MySerial::getInstance(); // Serial instance for debugging
-    //  serial.println("Measure US");               // Debug message
-    //  ultrasonicManager.measureAll(distances); // Measure distances
-    //  serial.println("Done"); // Debug message
-
-    // char buffer[128]; // Buffer for debug messages
-    // snprintf(buffer, sizeof(buffer), "Distances: Front: %.2f, Right: %.2f, Left: %.2f", frontDist, rightDist, leftDist);
-
-    // MySerial::getInstance().println(buffer); // Print distances for debugging
+    /* Check for obstacles, if exist reverse & stop*/
 
     float frontDist = ultrasonicManager.measureOne(FRONT_SENSOR_INDEX); // Measure distances again
 
     if (frontDist <= 7.0f)
     {
-        motorManager.driveReverse(100); // Move backward
-        GPTimer::delayMs(TIM4, 200);    // Move backward for 1 second
+        motorManager.driveReverse(100);
+        GPTimer::delayMs(TIM4, 200);
         motorManager.stopMotors();
         while (1)
         {
@@ -100,6 +92,7 @@ void Parking::checkForwardObstable()
 
 void Parking::rotateIntoPosition(bool isClockWise)
 {
+    /* Incremental rotations to align with parking space */
     float frontDist = ultrasonicManager.measureOne(FRONT_SENSOR_INDEX); // Measure distances again
 
     while (frontDist < 15.0f)
@@ -121,35 +114,24 @@ void Parking::rotateIntoPosition(bool isClockWise)
 
 void Parking::updateParkingLogic()
 {
-    MySerial &serial = MySerial::getInstance(); // Serial instance for debugging
-    // serial.println("Measure US");               // Debug message
-    // ultrasonicManager.measureAll(distances); // Measure distances
-    // distances[RIGHT_SENSOR_INDEX] = 0; // Measure distances
+    /* For parking left */
+    // distances[RIGHT_SENSOR_INDEX] = 0;
     // distances[LEFT_SENSOR_INDEX] = ultrasonicManager.measureOne(LEFT_SENSOR_INDEX);
+    // distances[FRONT_RIGHT_SENSOR_INDEX] = 0;
+    // distances[FRONT_LEFT_SENSOR_INDEX] = ultrasonicManager.measureOne(FRONT_LEFT_SENSOR_INDEX);
 
+    /* For parking right */
     distances[LEFT_SENSOR_INDEX] = 0;
     distances[RIGHT_SENSOR_INDEX] = ultrasonicManager.measureOne(RIGHT_SENSOR_INDEX);
-
-    // distances[FRONT_RIGHT_SENSOR_INDEX] = 0; // Measure distances
-    //  distances[FRONT_LEFT_SENSOR_INDEX] = ultrasonicManager.measureOne(FRONT_LEFT_SENSOR_INDEX); // Measure distances
-    //  serial.println("Front Right US");                                                             // Debug message
     distances[FRONT_LEFT_SENSOR_INDEX] = 0;
     distances[FRONT_RIGHT_SENSOR_INDEX] = ultrasonicManager.measureOne(FRONT_RIGHT_SENSOR_INDEX);
-    // serial.println("Front Left US");                                                            // Debug message
 
-    // serial.println("Done"); // Debug message
-
+    // US distances
     float rightDist = distances[RIGHT_SENSOR_INDEX], leftDist = distances[LEFT_SENSOR_INDEX];
     float frontRightDist = distances[FRONT_RIGHT_SENSOR_INDEX];
     float frontLeftDist = distances[FRONT_LEFT_SENSOR_INDEX];
 
-    // char buffer[128]; // Buffer for debug messages
-    // sniprintf(buffer, sizeof(buffer), "Distances: Front: %.2f, Right: %.2f, Left: %.2f", frontDist, rightDist, leftDist);
-
-    // MySerial::getInstance().println(buffer); // Print distances for debugging
-
-    uint8_t speed = 70;          // Speed for motors
-    uint8_t rotation_speed = 75; // Slow speed for parking or rotation
+    uint8_t speed = 70; // Common speed for motors
 
     switch (state)
     {
@@ -170,6 +152,8 @@ void Parking::updateParkingLogic()
         else
         {
             checkForwardObstable(); // Check for obstacles in front
+
+            /* for parking left, handle fwd left motor drift */
 
             // if (ultrasonicManager.measureOne(LEFT_SENSOR_INDEX) <= 4 || ultrasonicManager.measureOne(FRONT_LEFT_SENSOR_INDEX) <= 2)
 
@@ -197,6 +181,7 @@ void Parking::updateParkingLogic()
         // Align so you're centered and ready to park
         checkForwardObstable(); // Check for obstacles in front
 
+        // Check if space is wide enough to park
         motorManager.driveReverse(speed);
         GPTimer::delayMs(TIM4, 225);
         motorManager.stopMotors();
@@ -212,22 +197,19 @@ void Parking::updateParkingLogic()
             break;
         }
 
-        // while (1)
-        //{
-        /* code */
-        //}
-
+        // Space is wide enough, so continue parking
         motorManager.driveForward(speed);
         GPTimer::delayMs(TIM4, 400);
         motorManager.stopMotors();
         GPTimer::delayMs(TIM4, 500);
 
         motorManager.rotateClockwise(100); // Rotate slowly to align with the parking space
-        GPTimer::delayMs(TIM4, 440);       // Rotate for a period
+        GPTimer::delayMs(TIM4, 440);
         motorManager.stopMotors();
         GPTimer::delayMs(TIM4, 1000); // Wait for a short time to stabilize
 
-        rotateIntoPosition(true); // Rotate slowly to align with the parking space
+        // Incremental rotation to align with the parking space
+        rotateIntoPosition(true);
 
         state = ParkingState::ForwardParking;
         break;
@@ -236,6 +218,7 @@ void Parking::updateParkingLogic()
         // Align so you're centered and ready to park
         checkForwardObstable(); // Check for obstacles in front
 
+        // Check if space is wide enough to park
         motorManager.driveReverse(speed);
         GPTimer::delayMs(TIM4, 300);
         motorManager.stopMotors();
@@ -251,28 +234,26 @@ void Parking::updateParkingLogic()
             break;
         }
 
-        // while (1)
-        //{
-        /* code */
-        //}
-
+        // Space is wide enough, so continue parking
         motorManager.driveForward(speed);
         GPTimer::delayMs(TIM4, 200);
         motorManager.stopMotors();
         GPTimer::delayMs(TIM4, 500);
 
         motorManager.rotateCounterClockwise(70); // Rotate slowly to align with the parking space
-        GPTimer::delayMs(TIM4, 700);             // Rotate for a period
+        GPTimer::delayMs(TIM4, 700);
         motorManager.stopMotors();
-        GPTimer::delayMs(TIM4, 1000); // Wait for a short time to stabilize
+        GPTimer::delayMs(TIM4, 1000);
 
-        rotateIntoPosition(false); // Rotate slowly to align with the parking space
+        // Incremental rotation to align with the parking space
+        rotateIntoPosition(false);
 
         state = ParkingState::ForwardParking;
         break;
 
     case ParkingState::ForwardParking:
     {
+        // Park but mind sudden obstacles in front
         parkStart = SystemTimer::millis(); // Get the current time in milliseconds
         parkEnd = SystemTimer::millis();   // Initialize end time
         while (parkEnd - parkStart < 1900)
@@ -289,8 +270,7 @@ void Parking::updateParkingLogic()
 
     case ParkingState::Done:
         // Car is parked
-        motorManager.stopMotors();                       // Stop motors
-        MySerial::getInstance().println("Parking Done"); // Debug message
+        motorManager.stopMotors(); // Stop motors
         break;
 
     default:
