@@ -26,10 +26,10 @@ GPIO led_switch(GPIOB, 6);
 GPIO internal_led(GPIOC, 13);
 
 MotorConfig motorLeftConfig = {
-    GPIOA, // PWM GPIO port for left motor forward
-    4,     // Direction GPIO pin for forward
-    GPIOA, // PWM GPIO port for left motor reverse
-    5,     // Direction GPIO pin for reverse
+    GPIOB, // PWM GPIO port for left motor forward
+    0,     // Direction GPIO pin for forward
+    GPIOB, // PWM GPIO port for left motor reverse
+    1,     // Direction GPIO pin for reverse
 
     TIM2, // Timer for PWM generation
     1     // PWM channel (channel 1 for TIM2: A0)
@@ -76,19 +76,19 @@ int main()
     MotorManager motorManager(motorsRight, motor_countL, motorsLeft, motor_countR);
 
     // Ultrasonic sensors
-    UltrasonicSensor ultrasonicFront(GPIO(GPIOB, 8), GPIO(GPIOB, 9));      // Trigger on PB8, Echo on PB9
-    UltrasonicSensor ultrasonicRight(GPIO(GPIOB, 6), GPIO(GPIOB, 7));      // Trigger on PB6, Echo on PB7
-    UltrasonicSensor ultrasonicLeft(GPIO(GPIOB, 4), GPIO(GPIOB, 5));       // Trigger on PB4, Echo on PB5
-    UltrasonicSensor ultrasonicFrontRight(GPIO(GPIOA, 8), GPIO(GPIOA, 9)); // Trigger on PA8, Echo on PA9
-    // UltrasonicSensor ultrasonicBack(GPIO(GPIOB, 8), GPIO(GPIOB, 9));              // Trigger on PA6, Echo on PA7
+    UltrasonicSensor ultrasonicFront(GPIO(GPIOB, 8), GPIO(GPIOB, 9));       // Trigger on PB8, Echo on PB9
+    UltrasonicSensor ultrasonicRight(GPIO(GPIOB, 6), GPIO(GPIOB, 7));       // Trigger on PB6, Echo on PB7
+    UltrasonicSensor ultrasonicLeft(GPIO(GPIOB, 4), GPIO(GPIOB, 5));        // Trigger on PB4, Echo on PB5
+    UltrasonicSensor ultrasonicFrontRight(GPIO(GPIOA, 8), GPIO(GPIOA, 9));  // Trigger on PA8, Echo on PA9
+    UltrasonicSensor ultrasonicFrontLeft(GPIO(GPIOA, 10), GPIO(GPIOA, 11)); // Trigger on PA10, Echo on PA11
 
     // Ultrasonic manager (front, right, left)
-    UltrasonicManager ultrasonicManager(4, 30); // 4 sensors, 30ms settle time
+    UltrasonicManager ultrasonicManager(5, 30); // 4 sensors, 30ms settle time
     ultrasonicManager.setSensor(ultrasonicFront);
     ultrasonicManager.setSensor(ultrasonicRight);
     ultrasonicManager.setSensor(ultrasonicLeft);
     ultrasonicManager.setSensor(ultrasonicFrontRight);
-    // ultrasonicManager.setSensor(ultrasonicBack);
+    ultrasonicManager.setSensor(ultrasonicFrontLeft);
 
     // Parking
     Parking parking(motorManager, ultrasonicManager);
@@ -108,18 +108,29 @@ int main()
     // motorManager.stopMotors();   // Stop motors
     // GPTimer::delayMs(TIM4, 500); // Wait for 500ms
 
+    Bluetooth BT(USART::BaudRate::BR_9600);
+
+    BT.waitStartSignal();
+
+    // motorManager.rotateCounterClockwise(100);
+    // GPTimer::delayMs(TIM4, 440); // Rotate clockwise for 1 second
+    // motorManager.stopMotors();   // Stop motors
+    // GPTimer::delayMs(TIM4, 500); // Wait for 500ms
+
     while (true)
     {
         // serial.println("Main loop");
         // motorManager.rotateClockwise(speed); // Move forward
-        // parking.updateParkingLogic(); // Update parking logic
-        serial.println("Measure US"); // Debug message
-        float frontLeftDist = ultrasonicManager.measureOne(3);
-        serial.println("Done"); // Debug message
-        char buffer[80]; // Buffer for debug messages
-        snprintf(buffer, sizeof(buffer), "Front Left Distance: %.2f cm", frontLeftDist);
-        serial.println(buffer);       // Print distances for debugging
-        GPTimer::delayMs(TIM4, 1000); // Wait for 1 second
+
+        parking.updateParkingLogic(); // Update parking logic
+
+        // serial.println("Measure US"); // Debug message
+        // float frontLeftDist = ultrasonicManager.measureOne(3);
+        // serial.println("Done"); // Debug message
+        // char buffer[80];        // Buffer for debug messages
+        // snprintf(buffer, sizeof(buffer), "Front Left Distance: %.2f cm", frontLeftDist);
+        // serial.println(buffer);       // Print distances for debugging
+        // GPTimer::delayMs(TIM4, 1000); // Wait for 1 second
 
         // GPTimer::delayMs(TIM4, 1000); // Move forward for 1 second
         // motorManager.stopMotors();    // Stop motors
@@ -138,19 +149,20 @@ int main()
 
         // GPTimer::delayMs(TIM4, 1000); // Wait for 1 second
 
-        // motorManager.driveForward(65);
+        // motorManager.driveForward(100);
+
+        // char buffer[80];
+        // float leftDist = ultrasonicManager.measureOne(2);
+        // float frontLeftDist = ultrasonicManager.measureOne(4);
+        // sniprintf(buffer, sizeof(buffer), "Distances: Left: %.2f, Front left: %.2f", leftDist, frontLeftDist);
+        // serial.println(buffer);
 
         // motorManager.driveReverse(speed);
         // GPTimer::delayMs(TIM4, 1000); // Move backward for 1 second
         // motorManager.stopMotors();    // Stop motors
         // GPTimer::delayMs(TIM4, 500);  // Wait for 500ms
 
-        // motorManager.rotateClockwise(75);
-        // GPTimer::delayMs(TIM4, 650); // Rotate clockwise for 1 second
-        // motorManager.stopMotors();    // Stop motors
-        // GPTimer::delayMs(TIM4, 500);  // Wait for 500ms
-
-        // motorManager.rotateCounterClockwise(speed);
+        // motorManager.rotateCounterClockwise(100);
         // GPTimer::delayMs(TIM4, 1000); // Rotate counterclockwise for 1 second
         // motorManager.stopMotors();    // Stop motors
         // GPTimer::delayMs(TIM4, 500);  // Wait for 500ms

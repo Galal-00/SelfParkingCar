@@ -41,9 +41,9 @@ void MotorManager::rotateClockwise(uint8_t speed)
 
 void MotorManager::rotateCounterClockwise(uint8_t speed)
 {
-    motorsLeft.setDirection(Motor::Direction::Reverse);
-    motorsLeft.setSpeed(speed);
-
     motorsRight.setDirection(Motor::Direction::Forward);
     motorsRight.setSpeed(speed);
+    
+    motorsLeft.setDirection(Motor::Direction::Reverse);
+    motorsLeft.setSpeed(speed);
 }

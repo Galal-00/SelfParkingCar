@@ -38,6 +38,7 @@ public:
         if (idx < sensorCount)
         {
             float distance = sensors[idx].measureDistanceCm();
+            GPTimer::delayMs(sensors[idx].getTimer(), settleDelayMs);
             return distance;
         }
 
