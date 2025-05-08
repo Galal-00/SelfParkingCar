@@ -171,22 +171,22 @@ void Parking::updateParkingLogic()
         {
             checkForwardObstable(); // Check for obstacles in front
 
-            if (ultrasonicManager.measureOne(LEFT_SENSOR_INDEX) <= 4 || ultrasonicManager.measureOne(FRONT_LEFT_SENSOR_INDEX) <= 2)
+            // if (ultrasonicManager.measureOne(LEFT_SENSOR_INDEX) <= 4 || ultrasonicManager.measureOne(FRONT_LEFT_SENSOR_INDEX) <= 2)
 
-            {
+            // {
 
-                motorManager.rotateClockwise(70);
-                GPTimer::delayMs(TIM4, 300);
-                motorManager.stopMotors();
-                GPTimer::delayMs(TIM4, 300);
+            //     motorManager.rotateClockwise(70);
+            //     GPTimer::delayMs(TIM4, 300);
+            //     motorManager.stopMotors();
+            //     GPTimer::delayMs(TIM4, 300);
 
-                motorManager.driveForward(speed); // keep scanning
-                GPTimer::delayMs(TIM4, 500);
-                motorManager.stopMotors();
-                GPTimer::delayMs(TIM4, 300);
-                motorManager.rotateCounterClockwise(70);
-                GPTimer::delayMs(TIM4, 200);
-            }
+            //     motorManager.driveForward(speed); // keep scanning
+            //     GPTimer::delayMs(TIM4, 500);
+            //     motorManager.stopMotors();
+            //     GPTimer::delayMs(TIM4, 300);
+            //     motorManager.rotateCounterClockwise(70);
+            //     GPTimer::delayMs(TIM4, 200);
+            // }
 
             motorManager.driveForward(speed); // keep scanning
         }
@@ -218,7 +218,7 @@ void Parking::updateParkingLogic()
         //}
 
         motorManager.driveForward(speed);
-        GPTimer::delayMs(TIM4, 200);
+        GPTimer::delayMs(TIM4, 400);
         motorManager.stopMotors();
         GPTimer::delayMs(TIM4, 500);
 
@@ -275,7 +275,7 @@ void Parking::updateParkingLogic()
     {
         parkStart = SystemTimer::millis(); // Get the current time in milliseconds
         parkEnd = SystemTimer::millis();   // Initialize end time
-        while (parkEnd - parkStart < 1600)
+        while (parkEnd - parkStart < 1900)
         {
             motorManager.driveForward(speed);
             checkForwardObstable();          // Check for obstacles in front
