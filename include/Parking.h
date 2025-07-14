@@ -115,10 +115,10 @@ void Parking::rotateIntoPosition(bool isClockWise)
 void Parking::updateParkingLogic()
 {
     /* For parking left */
-    // distances[RIGHT_SENSOR_INDEX] = 0;
-    // distances[LEFT_SENSOR_INDEX] = ultrasonicManager.measureOne(LEFT_SENSOR_INDEX);
-    // distances[FRONT_RIGHT_SENSOR_INDEX] = 0;
-    // distances[FRONT_LEFT_SENSOR_INDEX] = ultrasonicManager.measureOne(FRONT_LEFT_SENSOR_INDEX);
+    distances[RIGHT_SENSOR_INDEX] = 0;
+    distances[LEFT_SENSOR_INDEX] = ultrasonicManager.measureOne(LEFT_SENSOR_INDEX);
+    distances[FRONT_RIGHT_SENSOR_INDEX] = 0;
+    distances[FRONT_LEFT_SENSOR_INDEX] = ultrasonicManager.measureOne(FRONT_LEFT_SENSOR_INDEX);
 
     /* For parking right */
     distances[LEFT_SENSOR_INDEX] = 0;
@@ -155,22 +155,22 @@ void Parking::updateParkingLogic()
 
             /* for parking left, handle fwd left motor drift */
 
-            // if (ultrasonicManager.measureOne(LEFT_SENSOR_INDEX) <= 4 || ultrasonicManager.measureOne(FRONT_LEFT_SENSOR_INDEX) <= 2)
+            if (ultrasonicManager.measureOne(LEFT_SENSOR_INDEX) <= 4 || ultrasonicManager.measureOne(FRONT_LEFT_SENSOR_INDEX) <= 2)
 
-            // {
+            {
 
-            //     motorManager.rotateClockwise(70);
-            //     GPTimer::delayMs(TIM4, 300);
-            //     motorManager.stopMotors();
-            //     GPTimer::delayMs(TIM4, 300);
+                motorManager.rotateClockwise(70);
+                GPTimer::delayMs(TIM4, 300);
+                motorManager.stopMotors();
+                GPTimer::delayMs(TIM4, 300);
 
-            //     motorManager.driveForward(speed); // keep scanning
-            //     GPTimer::delayMs(TIM4, 500);
-            //     motorManager.stopMotors();
-            //     GPTimer::delayMs(TIM4, 300);
-            //     motorManager.rotateCounterClockwise(70);
-            //     GPTimer::delayMs(TIM4, 200);
-            // }
+                motorManager.driveForward(speed); // keep scanning
+                GPTimer::delayMs(TIM4, 500);
+                motorManager.stopMotors();
+                GPTimer::delayMs(TIM4, 300);
+                motorManager.rotateCounterClockwise(70);
+                GPTimer::delayMs(TIM4, 200);
+            }
 
             motorManager.driveForward(speed); // keep scanning
         }
